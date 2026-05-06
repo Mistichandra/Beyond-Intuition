@@ -3,5 +3,6 @@ pandas
 numpy
 plotly
 openpyxl
+statsmodels
 scikit-learn
 joblib
