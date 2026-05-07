@@ -342,8 +342,14 @@ elif main_mode == "⚡ Engine 2: Batch Grader":
                 
                 # Extract Regression Weights
                 try:
-                    str_weights = pd.read_excel(master_xls, sheet_name=f"Impact_{category}_STR", skiprows=2).dropna(subset=['Attribute'])
-                    ros_weights = pd.read_excel(master_xls, sheet_name=f"Impact_{category}_ROS", skiprows=2).dropna(subset=['Attribute'])
+                    str_weights = pd.read_excel(master_xls, sheet_name=f"Impact_{category}_STR", skiprows=3)
+                    if 'Attribute' not in str_weights.columns: str_weights = pd.read_excel(master_xls, sheet_name=f"Impact_{category}_STR", skiprows=2)
+                    str_weights = str_weights.dropna(subset=['Attribute'])
+                    
+                    ros_weights = pd.read_excel(master_xls, sheet_name=f"Impact_{category}_ROS", skiprows=3)
+                    if 'Attribute' not in ros_weights.columns: ros_weights = pd.read_excel(master_xls, sheet_name=f"Impact_{category}_ROS", skiprows=2)
+                    ros_weights = ros_weights.dropna(subset=['Attribute'])
+                    
                     str_dict = dict(zip(str_weights['Attribute'], str_weights['Coefficient']))
                     ros_dict = dict(zip(ros_weights['Attribute'], ros_weights['Coefficient']))
                 except:
@@ -450,8 +456,13 @@ elif main_mode == "📊 Engine 3: Live Dashboard":
         st.info("👋 Upload your Master Retail Intelligence Excel file above to unlock the dashboard.")
         st.stop()
 
-    def get_sheet(sheet_name, skip=0):
-        if sheet_name in xls.sheet_names: return pd.read_excel(xls, sheet_name=sheet_name, skiprows=skip)
+    def get_sheet(sheet_name):
+        if sheet_name in xls.sheet_names:
+            df = pd.read_excel(xls, sheet_name=sheet_name, skiprows=3)
+            if 'Attribute' in df.columns: return df
+            df = pd.read_excel(xls, sheet_name=sheet_name, skiprows=2)
+            if 'Attribute' in df.columns: return df
+            return pd.read_excel(xls, sheet_name=sheet_name)
         return pd.DataFrame()
         
     tab1, tab2, tab3 = st.tabs(["🧬 Attribute Analytics", "🔮 Live Grade Predictor", "🗺️ Geographic Assortment"])
@@ -460,8 +471,12 @@ elif main_mode == "📊 Engine 3: Live Dashboard":
         cat = st.radio("Select Category:", list(CATEGORY_DNA.keys()), horizontal=True, key="t1")
         st.markdown("---")
         
-        str_df = get_sheet(f"Impact_{cat}_STR", skip=2).dropna(subset=['Attribute'])
-        ros_df = get_sheet(f"Impact_{cat}_ROS", skip=2).dropna(subset=['Attribute'])
+        str_df = get_sheet(f"Impact_{cat}_STR")
+        if 'Attribute' in str_df.columns: str_df = str_df.dropna(subset=['Attribute'])
+        
+        ros_df = get_sheet(f"Impact_{cat}_ROS")
+        if 'Attribute' in ros_df.columns: ros_df = ros_df.dropna(subset=['Attribute'])
+        
         raw_df = get_sheet(cat)
         
         if str_df.empty or raw_df.empty:
@@ -498,8 +513,11 @@ elif main_mode == "📊 Engine 3: Live Dashboard":
         st.markdown("---")
         
         raw_df2 = get_sheet(cat2)
-        str_df2 = get_sheet(f"Impact_{cat2}_STR", skip=2).dropna(subset=['Attribute'])
-        ros_df2 = get_sheet(f"Impact_{cat2}_ROS", skip=2).dropna(subset=['Attribute'])
+        str_df2 = get_sheet(f"Impact_{cat2}_STR")
+        if 'Attribute' in str_df2.columns: str_df2 = str_df2.dropna(subset=['Attribute'])
+        
+        ros_df2 = get_sheet(f"Impact_{cat2}_ROS")
+        if 'Attribute' in ros_df2.columns: ros_df2 = ros_df2.dropna(subset=['Attribute'])
         
         if raw_df2.empty or str_df2.empty or 'DNA_STR_Impact' not in raw_df2.columns:
             st.warning("Insufficient predictive data.")
@@ -588,7 +606,8 @@ elif main_mode == "📊 Engine 3: Live Dashboard":
         cat3 = st.radio("Select Target Category:", list(CATEGORY_DNA.keys()), horizontal=True, key="t3")
         st.markdown("---")
         raw_df3 = get_sheet(cat3)
-        str_df3 = get_sheet(f"Impact_{cat3}_STR", skip=2).dropna(subset=['Attribute'])
+        str_df3 = get_sheet(f"Impact_{cat3}_STR")
+        if 'Attribute' in str_df3.columns: str_df3 = str_df3.dropna(subset=['Attribute'])
         
         with st.form("assort_form"):
             st.subheader("Configure Target Mix")
